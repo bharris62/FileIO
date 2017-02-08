@@ -4,14 +4,12 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Scanner;
 
 public class Questionnaire {
     String question;
     String answer;
-    List<Questionnaire> questionAnswers = new ArrayList<>();
+
 
     public Questionnaire(){
 
@@ -20,11 +18,13 @@ public class Questionnaire {
     public Questionnaire(String question, String answer) {
         this.question = question;
         this.answer = answer;
+
     }
 
     public void saveFile() throws IOException {
+        QuestionAndAnswer qa = new QuestionAndAnswer();
         JsonSerializer serializer = new JsonSerializer();
-        String json = serializer.include("questionAnswers").serialize(questionAnswers);
+        String json = serializer.include("questionAnswers").serialize(qa);
 
         File f = new File("questionnaire.json");
         FileWriter fw = new FileWriter(f);
@@ -33,7 +33,8 @@ public class Questionnaire {
         fw.close();
     }
 
-    public static Questionnaire loadQuestionnaire() throws FileNotFoundException {
+    public static QuestionAndAnswer loadQuestionnaire() throws FileNotFoundException {
+
         File f = new File("questionnaire.json");
         Scanner s = new Scanner(f);
         s.useDelimiter("\\Z");
@@ -41,17 +42,17 @@ public class Questionnaire {
         s.close();
 
         JsonParser p = new JsonParser();
-        return p.parse(contents, Questionnaire.class);
+        return p.parse(contents, QuestionAndAnswer.class);
     }
 
     public void printFile(){
-        for (Questionnaire q : questionAnswers) {
+        for (Questionnaire q : QuestionAndAnswer.questionAnswers) {
             System.out.printf("Question: %s\nAnswer: %s\n", q.question,q.answer);
         }
     }
 
     public void storeQuestionAndAnswer(Questionnaire q) {
-        questionAnswers.add(q);
+        QuestionAndAnswer.questionAnswers.add(q);
     }
 
     public String getQuestion() {
@@ -71,11 +72,19 @@ public class Questionnaire {
     }
 
 
-    public List<Questionnaire> getQuestionAnswers() {
-        return questionAnswers;
-    }
-
-    public void setQuestionAnswers(List<Questionnaire> questionAnswers) {
-        this.questionAnswers = questionAnswers;
+    public static boolean updateAnswers(Scanner scanner) {
+        boolean isTrue = true;
+        System.out.println("What number would you like to change?");
+        int numToChange = Integer.parseInt(scanner.nextLine());
+        System.out.println("What would you like to chagne it to? ");
+        String userInput = scanner.nextLine();
+        Questionnaire updatedAnswer = QuestionAndAnswer.questionAnswers.get(numToChange - 1);
+        updatedAnswer.answer = userInput;
+        System.out.println("Would you like to change anythign else? [y/n]");
+        String userResp = scanner.nextLine().toLowerCase();
+        if(userResp.equals("n")){
+            isTrue = false;
+        }
+        return isTrue;
     }
 }
